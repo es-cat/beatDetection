@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<!-- saved from url=(0042)http://webaudioapi.com/samples/visualizer/ -->
+<html>
+
+<head>
+    <title>Visualizer | Web Audio API</title>
+</head>
+<style>
+    body {
+        background: #000;
+    }
+    
+</style>
+<body>
+    <div id="container">
+        <div id="header">
+            <h1><a href="http://webaudioapi.com/">Web Audio API</a></h1>
+        </div>
+        <div id="wrapper">
+            <div id="content">
+                <div class="post">
+                    <h2>Visualizer</h2>
+                    <p>
+                    </p>
+                    <p>Using the AnalyserNode and some Canvas 2D visualizations to show both time- and frequency- domain.</p>
+                    <p></p>
+                    <p>
+                    </p>
+                    <p>
+                        <button style="display: block">Play/pause</button>
+                        <canvas width="640" height="360"></canvas>
+                    </p>
+                    <script src="assets/shared.js"></script>
+                    <script src="assets/visualizer-sample.js"></script>
+                    <script>
+                    var sample = new VisualizerSample();
+
+                    document.querySelector('button').addEventListener('click', function() {
+                        sample.togglePlayback()
+                    });
+
+                    // sample.source.onended(function(e){
+                    //     // Filtered buffer!
+                    //     var filteredBuffer = e.renderedBuffer;
+                    //     console.log(filteredBuffer);
+                        
+                    // });
+
+                    </script>
+                    <p></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
