@@ -20,24 +20,49 @@ function bateAnys() {
     var _this = this;
     loadSounds(this, {
         // buffer: 'chrono.mp3'
-            buffer: 'demo.mp3'
+        buffer: 'demo.mp3'
+    }, function () {
+        bateAnysObj.startAnys();
     });
 
 }
 
 
-bateAnys.prototype.playMusic = function() {
+bateAnys.prototype.playMusic = function () {
     this.source = context.createBufferSource();
     this.source.buffer = this.buffer;
 
     var filter = context.createBiquadFilter();
-    filter.type = "lowpass";
+    var analyser = context.createAnalyser();
 
-    var nodes = [this.source, filter];
+    var nodes = [this.source, analyser];
 
     connectChain(nodes, context.destination);
 
-    this.source.start(0);
+
+
+    var cw = 5000;
+    var ch = 500;
+    var height = 10;
+    var rate = 6000; //px 對應 0.5秒
+    var peaks = this.peaks;
+    var grid = Math.max(Math.floor(cw / peaks[peaks.length - 1].index / rate), 1);
+    var canvas = document.querySelector('canvas');
+    var drawContext = canvas.getContext('2d');
+    var init = false;
+    var _this = this;
+    context.currentTime = 0;
+    function draw() {
+        requestAnimationFrame(draw);
+        drawContext.fillStyle = 'hsl(' + 200 + ', 100%, 50%)';
+        drawContext.fillRect(grid * context.currentTime * (44100 / 12000), ch - height - 1, grid, height);
+        if (!init) {
+            init = true;
+            _this.source.start(0);
+        }
+        console.log(context.currentTime)
+    };
+    draw();
 
 };
 
@@ -61,8 +86,6 @@ bateAnys.prototype.getPeaksAtThreshold = function(data, threshold) {
     }
     return peaksArray;
 }
-
-
 
 bateAnys.prototype.drawBate = function() {
     var peaks = this.peaks;
@@ -104,7 +127,7 @@ bateAnys.prototype.drawBate = function() {
 };
 
 
-bateAnys.prototype.startAnys = function() {
+bateAnys.prototype.startAnys = function () {
 
     offlineContext = new OfflineAudioContext(1, this.buffer.length, this.buffer.sampleRate);
 
@@ -112,34 +135,31 @@ bateAnys.prototype.startAnys = function() {
     bateSource.buffer = this.buffer;
 
     var filter = offlineContext.createBiquadFilter();
-    filter.type = "lowpass";
-
-    var nodes = [bateSource];
-
+    var nodes = [bateSource, filter];
     connectChain(nodes, offlineContext.destination);
+
+    filter.type = "lowpass";
+    filter.frequency.value = 219;
+    filter.Q.value = 25.5;
 
     bateSource.start(0);
     offlineContext.startRendering();
 
     var _this = this;
 
-    offlineContext.oncomplete = function(e) {
+    offlineContext.oncomplete = function (e) {
         var filteredBuffer = e.renderedBuffer;
         _this.filteredDatas = filteredBuffer.getChannelData(0);
-        _this.peaks = _this.getPeaksAtThreshold(_this.filteredDatas, 0.5);
+        _this.peaks = _this.getPeaksAtThreshold(_this.filteredDatas, 0);
         // _this.peakIntervals = countIntervalsBetweenNearbyPeaks(_this.peaks);
         _this.drawBate();
         _this.playMusic();
     };
-
-
-
 };
 
 function countIntervalsBetweenNearbyPeaks(peaks) {
     var intervalCounts = [];
     peaks.forEach(function(peak, index) {
-
         for (var i = 0; i < 100; i++) {
         	if(peaks[index + i]){
 	            var interval = peaks[index + i].index - peak.index;
